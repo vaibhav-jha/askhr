@@ -29,7 +29,7 @@ class Discovery:
     def fetch_docs(self, query: str):
         response = self.instance.query(
             project_id=self.project_id,
-            natural_language_query='What is the difference between FMLA and PFL',
+            natural_language_query=query,
             passages=QueryLargePassages(find_answers=True)
         )
 

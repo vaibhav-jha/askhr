@@ -38,7 +38,7 @@ def create_app(config=None):
 
         response = chain.invoke({"question": query})
 
-        return response
+        return {"summary": response}
 
     return app
 
