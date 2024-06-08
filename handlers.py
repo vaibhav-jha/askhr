@@ -29,8 +29,11 @@ def fetch_user_information(wid):
     wd_tenant_id = getenv('WORKDAY_TENANT_ID')
     wd_url = os.path.join(wd_tenant_url, 'staffing/v6/', wd_tenant_id, 'workers', wid)
 
-    resp = requests.get(wd_url, auth=BearerAuth(bearer_token))
-    resp_json = resp.json()
+    try:
+        resp = requests.get(wd_url, auth=BearerAuth(bearer_token))
+        resp_json = resp.json()
+    except Exception as e:
+        return {"status": "fail", "message": str(e)}
 
     if "error" in resp_json.keys():
         return {"status": "fail", "message": resp_json['error']}
@@ -47,8 +50,8 @@ def fetch_user_information(wid):
         resp = requests.get(service_url, auth=BearerAuth(bearer_token))
         resp_json = resp.json()
 
-        user_info['Continuous Service Date'] = resp_json['data'][0]['continuousServiceDate']
-        user_info['Hire Date'] = resp_json['data'][0]['hireDate']
+        user_info['ContinuousServiceDate'] = resp_json['data'][0]['continuousServiceDate']
+        user_info['HireDate'] = resp_json['data'][0]['hireDate']
 
         user_info['status'] = 'success'
     except Exception as e:
