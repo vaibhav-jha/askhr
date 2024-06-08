@@ -6,10 +6,8 @@ See also https://www.python-boilerplate.com/flask
 import os
 
 from flask import Flask, jsonify, request
-from discovery import Discovery
-from utils import beautify_discovery_results
-from prompts import prompt_template
-from watsonx_ai import llama
+from handlers import question_handler, fetch_user_information
+
 
 
 def create_app(config=None):
@@ -24,21 +22,23 @@ def create_app(config=None):
     @app.route("/answer_question", methods=['POST'])
     def answer():
         req = request.get_json()
-
         query = req['question']
+        return question_handler(question=query)
 
-        discovery_results = Discovery().fetch_docs(query)
-        docs_for_llama_context = beautify_discovery_results(discovery_results)
+    @app.route("/fetch_user", methods=['POST'])
+    def fetch_user():
+        req = request.get_json()
 
-        from langchain.prompts import PromptTemplate
-        prompt = PromptTemplate.from_template(prompt_template,
-                                              partial_variables={"context_documents": docs_for_llama_context})
+        if 'wid' not in req.keys():
+            return jsonify({"error": "Missing wid "}), 400
 
-        chain = prompt | llama
+        wid = req['wid']
 
-        response = chain.invoke({"question": query})
+        to_return = fetch_user_information(wid=wid)
 
-        return {"summary": response}
+        ret_status = 200 if to_return['status'] == 'success' else 400
+
+        return jsonify(to_return), ret_status
 
     return app
 
