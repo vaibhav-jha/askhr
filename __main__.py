@@ -33,8 +33,9 @@ def create_app(config=None):
             return jsonify({"error": "Missing wid "}), 400
 
         wid = req['wid']
+        wd_token = request.headers.get('workday-access-token')
 
-        to_return = fetch_user_information(wid=wid, )
+        to_return = fetch_user_information(wid=wid, token=wd_token)
 
         ret_status = 200 if to_return['status'] == 'success' else 400
 
