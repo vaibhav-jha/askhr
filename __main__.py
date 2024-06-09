@@ -34,7 +34,7 @@ def create_app(config=None):
 
         wid = req['wid']
 
-        to_return = fetch_user_information(wid=wid)
+        to_return = fetch_user_information(wid=wid, )
 
         ret_status = 200 if to_return['status'] == 'success' else 400
 

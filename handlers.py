@@ -23,8 +23,8 @@ def question_handler(question):
     return {"answer": response, "sources": ["WIP", "WIP"]}
 
 
-def fetch_user_information(wid):
-    bearer_token = getenv('WORKDAY_AUTH_TOKEN')
+def fetch_user_information(wid, token=None):
+    bearer_token = token or getenv('WORKDAY_AUTH_TOKEN')
     wd_tenant_url = getenv('WORKDAY_TENANT_URL')
     wd_tenant_id = getenv('WORKDAY_TENANT_ID')
     wd_url = os.path.join(wd_tenant_url, 'staffing/v6/', wd_tenant_id, 'workers', wid)
