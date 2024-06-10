@@ -9,8 +9,6 @@ from flask import Flask, jsonify, request
 from handlers import question_handler, fetch_user_information
 import langsmith_setup
 
-
-
 def create_app(config=None):
     app = Flask(__name__)
 
@@ -24,7 +22,10 @@ def create_app(config=None):
     def answer():
         req = request.get_json()
         query = req['question']
-        metadata = req.get('metadata')
+
+        metadata = {}
+        for key in req.keys():
+            metadata[key] = req[key]
 
         return question_handler(question=query, metadata=metadata)
 
