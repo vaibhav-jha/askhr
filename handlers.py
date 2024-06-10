@@ -1,3 +1,5 @@
+import json
+
 from discovery import Discovery
 from utils import beautify_discovery_results, beautify_dict, beautify_list
 from prompts import prompt_template
@@ -7,6 +9,7 @@ from requests_oauth2client import BearerAuth
 from os import getenv
 import os
 from datetime import date
+
 
 def question_handler(question, metadata=None):
     if metadata is None:
@@ -80,3 +83,24 @@ def fetch_user_information(wid, token=None):
         user_info['message'] = str(e)
 
     return user_info
+
+
+def handle_change_preferred_name(wid, to_name):
+    from zeep import Client
+    from zeep.wsse.username import UsernameToken
+
+    request_body = json.loads(open('soap_requests.json', 'r').read())
+
+    request_body['Change_Preferred_Name']['Change_Preferred_Name_Data']['Person_Reference']['ID']['_value_1'] = wid
+    request_body['Change_Preferred_Name']['Change_Preferred_Name_Data']['Name_Data']['First_Name'] = to_name.get('first_name')
+    request_body['Change_Preferred_Name']['Change_Preferred_Name_Data']['Name_Data']['Middle_Name'] = to_name.get('middle_name')
+    request_body['Change_Preferred_Name']['Change_Preferred_Name_Data']['Name_Data']['Last_Name'] = to_name.get('last_name')
+
+    un, pw = getenv('WORKDAY_ADMIN_USERNAME'), getenv('WORKDAY_ADMIN_PASSWORD')
+    wsdl_url = "https://wd2-impl-services1.workday.com/ccx/service/ibmsrv_dpt1/Human_Resources/v42.1?wsdl"
+
+    client = Client(wsdl_url, wsse=UsernameToken(un, pw))
+
+    response = client.service.Change_Preferred_Name(**request_body["Change_Preferred_Name"])
+
+    return response

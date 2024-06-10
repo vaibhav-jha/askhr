@@ -5,3 +5,4 @@ langchainhub
 langchain-ibm
 ibm-watson-machine-learning
 requests_oauth2client
+zeep
