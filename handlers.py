@@ -1,16 +1,33 @@
 from discovery import Discovery
-from utils import beautify_discovery_results
+from utils import beautify_discovery_results, beautify_dict, beautify_list
 from prompts import prompt_template
 from watsonx_ai import llama
 import requests
 from requests_oauth2client import BearerAuth
 from os import getenv
 import os
+from datetime import date
 
+def question_handler(question, metadata=None):
+    if metadata is None:
+        metadata = {}
 
-def question_handler(question):
-    discovery_results = Discovery().fetch_docs(question)
-    docs_for_llama_context = beautify_discovery_results(discovery_results)
+    user_details = "__Not Available__"
+    chat_history = "__Not Available__"
+
+    if metadata.get('discovery_results'):
+        docs_for_llama_context = metadata.get('discovery_results')
+    else:
+        discovery_results = Discovery().fetch_docs(question)
+        print(discovery_results)
+        docs_for_llama_context = beautify_discovery_results(discovery_results)
+
+    if 'user_details' in metadata:
+        user_details = beautify_dict(metadata['user_details'])
+    if 'chat_history' in metadata:
+        chat_history = beautify_list(metadata['chat_history'])
+
+    additional_info = f"Today's date is: {date.today().strftime('%B %d, %Y')}"
 
     from langchain.prompts import PromptTemplate
     prompt = PromptTemplate.from_template(prompt_template,
@@ -18,7 +35,11 @@ def question_handler(question):
 
     chain = prompt | llama
 
-    response = chain.invoke({"question": question})
+    response = chain.invoke({"question": question,
+                             "user_details": user_details,
+                             "chat_history": chat_history,
+                             "additional_info": additional_info,
+                             })
 
     return {"answer": response, "sources": ["WIP", "WIP"]}
 

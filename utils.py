@@ -17,3 +17,20 @@ def beautify_discovery_results(results):
         final_string += docstring
 
     return final_string
+
+
+def beautify_dict(any_dict):
+    ret_str = ""
+    for k, v in any_dict.items():
+        ret_str += f"{k}: {v}\n"
+    ret_str += '\n'
+    return ret_str
+def beautify_list(any_list):
+    ret_str = "```"
+    for i in any_list:
+        if type(i) == dict:
+            ret_str += beautify_dict(i)
+        else:
+            ret_str += f"\n{i}"
+    ret_str += '```\n'
+    return ret_str

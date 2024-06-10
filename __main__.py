@@ -7,6 +7,7 @@ import os
 
 from flask import Flask, jsonify, request
 from handlers import question_handler, fetch_user_information
+import langsmith_setup
 
 
 
@@ -23,7 +24,9 @@ def create_app(config=None):
     def answer():
         req = request.get_json()
         query = req['question']
-        return question_handler(question=query)
+        metadata = req.get('metadata')
+
+        return question_handler(question=query, metadata=metadata)
 
     @app.route("/fetch_user", methods=['POST'])
     def fetch_user():
