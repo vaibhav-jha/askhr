@@ -1,4 +1,8 @@
 from prompts import BOT_, EOTurn_, ROLE_, ip_var_
+from os import getenv
+import requests
+import os
+import base64
 
 
 def beautify_discovery_results(results):
@@ -51,3 +55,48 @@ def llamafy_assistant_chat(messages):
         ret_text += f"{ROLE_(role)}\n{message[key]} {EOTurn_} "
 
     return ret_text
+
+
+def get_wd_auth_from_refresh_token():
+
+    client_secret = getenv("CLIENT_SECRET_UNLIMITED")
+    client_id = getenv("CLIENT_ID_UNLIMITED")
+
+    refresh_token = getenv("REFRESH_TOKEN_UNLIMITED")
+
+    wd_tenant_base_url = "https://wd2-impl-services1.workday.com/"
+    wd_tenant_id = getenv('WORKDAY_TENANT_ID')
+    url = os.path.join(wd_tenant_base_url, 'ccx/oauth2/', wd_tenant_id, 'token')
+
+    payload = f"grant_type=refresh_token&refresh_token={refresh_token}"
+
+    # Combine username and password and encode in Base64
+    auth_str = f"{client_id}:{client_secret}"
+    auth_bytes = auth_str.encode('ascii')
+    auth_base64 = base64.b64encode(auth_bytes).decode('ascii')
+
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': f'Basic {auth_base64}'
+    }
+
+
+    # Perform the GET request with basic authentication
+    response = requests.request("GET", url, data=payload, headers=headers)
+
+    # Check the response status code
+    if response.status_code == 200:
+        # Print the response content
+        return response.json()["access_token"]
+
+    else:
+        print(f"Request failed with status code: {response.status_code}")
+        raise Exception("Bad request")
+
+
+
+
+
+
+
+

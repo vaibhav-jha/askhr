@@ -6,7 +6,7 @@ See also https://www.python-boilerplate.com/flask
 import os
 
 from flask import Flask, jsonify, request
-from handlers import question_handler, fetch_user_information, handle_change_preferred_name
+from handlers import question_handler, fetch_user_information, handle_change_preferred_name, handle_change_legal_name
 import langsmith_setup
 
 def create_app(config=None):
@@ -57,6 +57,24 @@ def create_app(config=None):
 
         try:
          to_return = handle_change_preferred_name(req['wid'], req['name'])
+        except Exception as e:
+            return {'error': str(e)}, 500
+
+        return jsonify(str(to_return)), 200
+
+    @app.route("/change_legal_name", methods=['POST'])
+    def change_legal_name():
+        """Expects a new name, wid and base64 encoded file."""
+        req = request.get_json()
+
+        if 'name' not in req:
+            return {'error': "Missing name object"}, 400
+        else:
+            if all([x not in req['name'] for x in ['first_name', 'last_name', 'middle_name']]):
+                return {'error': "Empty name object - {}"}, 400
+
+        try:
+            to_return = handle_change_legal_name(req['wid'], req['name'], req['additional_data'])
         except Exception as e:
             return {'error': str(e)}, 500
 

@@ -23,5 +23,44 @@
             "Last_Name": "Johnson III"
           }
         }
+  },
+
+
+  "Change_Legal_Name": {
+        "Business_Process_Parameters": {
+          "Auto_Complete": "true",
+          "Run_Now": "true",
+          "Business_Process_Attachment_Data": {
+            "File_Name": "test.txt",
+            "Event_Attachment_Description": "for validation",
+            "Event_Attachment_Category_Reference": {
+              "ID": {
+                "type": "Document_Category_ID",
+                "_value_1": "NAME-CHANGE"
+              }
+            },
+            "File": "Z2VlZmU=",
+            "Content_Type": "txt"
+          }
+        },
+        "Change_Legal_Name_Data": {
+          "Person_Reference": {
+            "ID": {
+              "type": "WID",
+              "_value_1": "a994585376dd4be681fc9cec7110b150"
+            }
+          },
+          "Effective_Date": "2024-06-01",
+          "Name_Data": {
+            "Country_Reference": {
+              "ID": {
+                "type": "WID",
+                "_value_1": "bc33aa3152ec42d4995f4791a106ed09"
+              }
+            },
+            "First_Name": "Dylan",
+            "Last_Name": "Johnson"
+          }
+        }
   }
 }
