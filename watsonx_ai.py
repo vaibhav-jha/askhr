@@ -1,4 +1,5 @@
 from langchain_ibm import WatsonxLLM
+from os import getenv
 
 parameters = {
     "decoding_method": "greedy",
@@ -10,6 +11,6 @@ parameters = {
 llama = WatsonxLLM(
     model_id="meta-llama/llama-3-70b-instruct",
     url="https://us-south.ml.cloud.ibm.com",
-    project_id="8aa3f2a9-238f-49d1-9a4f-5320ca747f2e",
+    project_id=getenv("WATSONX_PROJECT_ID"),
     params=parameters,
 )
