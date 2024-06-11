@@ -1,7 +1,7 @@
 import json
 
 from discovery import Discovery
-from utils import beautify_discovery_results, beautify_dict, beautify_list
+from utils import beautify_discovery_results, beautify_dict, llamafy_assistant_chat
 from prompts import prompt_template
 from watsonx_ai import llama
 import requests
@@ -22,13 +22,12 @@ def question_handler(question, metadata=None):
         docs_for_llama_context = metadata.get('discovery_results')
     else:
         discovery_results = Discovery().fetch_docs(question)
-        print(discovery_results)
         docs_for_llama_context = beautify_discovery_results(discovery_results)
 
     if 'user_details' in metadata:
         user_details = beautify_dict(metadata['user_details'])
     if 'chat_history' in metadata:
-        chat_history = beautify_list(metadata['chat_history'])
+        chat_history = llamafy_assistant_chat(metadata['chat_history'])
 
     additional_info = f"Today's date is: {date.today().strftime('%B %d, %Y')}"
 

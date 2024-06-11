@@ -42,26 +42,26 @@ Here are some instructions you must follow:
 For the current Interaction, here are the user details:
 {ip_var_("user_details")}
 
-Here is the chat history:
-{ip_var_("chat_history")}
-
 Additional Information:
 {ip_var_("additional_info")}
-
-{EOTurn_}
-
-{ROLE_('user')}
-{ip_var_("question")}
 {EOTurn_}
 
 {ROLE_('system')} 
-Context from existing documents:
+Context from existing documents that might be helpful:
 {ip_var_("context_documents")}
 
 Remember: 
 - Use only data provided in the context to you to answer the user's question. If the information is insufficient respond gracefully mentioning the fact that you do not have the information available.
 - Use the employee's data to answer the question better and specific to the employee
 - Keep your responses concise and share only all necessary details. It's a chat conversation with a human, you don't want to type out an essay.
+
+Begin!
+{EOTurn_}
+
+{ip_var_("chat_history")}
+
+{ROLE_('user')}
+{ip_var_("question")}
 {EOTurn_}
 
 {ROLE_('assistant')} 

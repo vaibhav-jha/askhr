@@ -1,3 +1,6 @@
+from prompts import BOT_, EOTurn_, ROLE_, ip_var_
+
+
 def beautify_discovery_results(results):
     final_string = ""
 
@@ -34,3 +37,17 @@ def beautify_list(any_list):
             ret_str += f"\n{i}"
     ret_str += '```\n'
     return ret_str
+
+def llamafy_assistant_chat(messages):
+    ret_text = ""
+    for message in messages:
+        key = "u"
+        if "a" in message.keys():
+            role = "assistant"
+            key = "a"
+        else:
+            role = "user"
+
+        ret_text += f"{ROLE_(role)}\n{message[key]} {EOTurn_} "
+
+    return ret_text

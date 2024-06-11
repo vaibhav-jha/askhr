@@ -6,8 +6,8 @@ from ibm_watson.discovery_v2 import QueryLargePassages
 class Discovery:
 
     def __init__(self):
-        self.project_id = "2d4911fa-2bc3-4537-8890-bd035a90898c"
-        self.url = "https://api.us-south.discovery.watson.cloud.ibm.com/instances/fe583531-dfa6-46e0-afd4-ad5f0a0756b3"
+        self.project_id = os.getenv("DISCOVERY_PROJECT_ID")
+        self.url = os.getenv("DISCOVERY_URL")
         self.api_key = os.getenv("DISCOVERY_API_KEY")
 
         self.instance = self.__get_instance__()
