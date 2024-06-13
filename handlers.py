@@ -101,21 +101,24 @@ def handle_change_preferred_name(wid, to_name):
     from zeep import Client
     from zeep.wsse.username import UsernameToken
 
-    request_body = json.loads(open('soap_requests.json', 'r').read())
+    # GET CURRENT NAME OBJECT
+    try:
+        worker_info = fetch_user_information(wid=wid)
+        person_id = worker_info['person']['id']
+        person = handle_fetch_person(person_id=person_id, field="preferred_name")
+        fn, mn, ln = person['first_name'], person["middle_name"], person['last_name']
+    except Exception as e:
+        print(e)
+        fn, mn, ln = "", "", ""
 
+    request_body = json.loads(open('soap_requests.json', 'r').read())
     request_body['Change_Preferred_Name']['Change_Preferred_Name_Data']['Person_Reference']['ID']['_value_1'] = wid
 
-    fn, mn, ln = to_name.get('first_name'), to_name.get('middle_name'), to_name.get('last_name')
+    fn, mn, ln = to_name.get('first_name') or fn, to_name.get('middle_name') or mn, to_name.get('last_name') or ln
 
-    if fn:
-        request_body['Change_Preferred_Name']['Change_Preferred_Name_Data']['Name_Data']['First_Name'] = to_name.get(
-            'first_name')
-    if to_name.get('middle_name'):
-        request_body['Change_Preferred_Name']['Change_Preferred_Name_Data']['Name_Data']['Middle_Name'] = to_name.get(
-            'middle_name')
-    if to_name.get('last_name'):
-        request_body['Change_Preferred_Name']['Change_Preferred_Name_Data']['Name_Data']['Last_Name'] = to_name.get(
-            'last_name')
+    request_body['Change_Preferred_Name']['Change_Preferred_Name_Data']['Name_Data']['First_Name'] = fn
+    request_body['Change_Preferred_Name']['Change_Preferred_Name_Data']['Name_Data']['Middle_Name'] = mn
+    request_body['Change_Preferred_Name']['Change_Preferred_Name_Data']['Name_Data']['Last_Name'] = ln
 
     un, pw = getenv('WORKDAY_ADMIN_USERNAME'), getenv('WORKDAY_ADMIN_PASSWORD')
     wsdl_url = "https://wd2-impl-services1.workday.com/ccx/service/ibmsrv_dpt1/Human_Resources/v42.1?wsdl"
