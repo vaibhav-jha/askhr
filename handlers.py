@@ -97,15 +97,24 @@ def fetch_user_information(wid, token=None):
     return user_info
 
 
+def _get_person_by_wid(wid, field):
+    try:
+        worker_info = fetch_user_information(wid=wid)
+        person_id = worker_info['person']['id']
+        person = handle_fetch_person(person_id=person_id, field=field)
+    except:
+        raise Exception(f"Couldnt find person object for worker {wid} ")
+
+    return person
+
+
 def handle_change_preferred_name(wid, to_name):
     from zeep import Client
     from zeep.wsse.username import UsernameToken
 
     # GET CURRENT NAME OBJECT
     try:
-        worker_info = fetch_user_information(wid=wid)
-        person_id = worker_info['person']['id']
-        person = handle_fetch_person(person_id=person_id, field="preferred_name")
+        person = _get_person_by_wid(wid=wid, field="preferred_name")
         fn, mn, ln = person['first_name'], person["middle_name"], person['last_name']
     except Exception as e:
         print(e)
@@ -134,12 +143,21 @@ def handle_change_legal_name(wid, to_name, additional_data):
     from zeep import Client
     from zeep.wsse.username import UsernameToken
 
+    # GET CURRENT NAME OBJECT
+    try:
+        person = _get_person_by_wid(wid=wid, field="legal_name")
+        fn, mn, ln = person['first_name'], person["middle_name"], person['last_name']
+    except Exception as e:
+        print(e)
+        fn, mn, ln = "", "", ""
+    fn, mn, ln = to_name.get('first_name') or fn, to_name.get('middle_name') or mn, to_name.get('last_name') or ln
+
     request_body = json.loads(open('soap_requests.json', 'r').read())
 
     request_body['Change_Legal_Name']['Change_Legal_Name_Data']['Person_Reference']['ID']['_value_1'] = wid
-    request_body['Change_Legal_Name']['Change_Legal_Name_Data']['Name_Data']['First_Name'] = to_name.get('first_name')
-    request_body['Change_Legal_Name']['Change_Legal_Name_Data']['Name_Data']['Middle_Name'] = to_name.get('middle_name')
-    request_body['Change_Legal_Name']['Change_Legal_Name_Data']['Name_Data']['Last_Name'] = to_name.get('last_name')
+    request_body['Change_Legal_Name']['Change_Legal_Name_Data']['Name_Data']['First_Name'] = fn
+    request_body['Change_Legal_Name']['Change_Legal_Name_Data']['Name_Data']['Middle_Name'] = mn
+    request_body['Change_Legal_Name']['Change_Legal_Name_Data']['Name_Data']['Last_Name'] = ln
 
     request_body['Change_Legal_Name']['Business_Process_Parameters']['Business_Process_Attachment_Data'][
         'File'] = additional_data.get('file')
