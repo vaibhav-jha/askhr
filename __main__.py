@@ -5,6 +5,7 @@ See also https://www.python-boilerplate.com/flask
 """
 import json
 import os
+from flask_cors import CORS, cross_origin
 
 from flask import Flask, jsonify, request
 from handlers import question_handler, fetch_user_information, handle_change_preferred_name, handle_change_legal_name, \
@@ -67,6 +68,7 @@ def create_app(config=None):
         return jsonify(str(to_return)), 200
 
     @app.route("/change_legal_name", methods=['POST'])
+    @cross_origin()  # Enable CORS for this specific endpoint
     def change_legal_name():
         """Expects a new name, wid and base64 encoded file."""
         req = request.get_json()
