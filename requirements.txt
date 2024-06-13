@@ -3,6 +3,6 @@ ibm-watson
 langchain
 langchainhub
 langchain-ibm
-ibm-watson-machine-learning== 1.0.357
+ibm-watson-machine-learning==1.0.357
 requests_oauth2client
 zeep

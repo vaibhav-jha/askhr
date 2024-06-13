@@ -3,11 +3,13 @@ Documentation
 
 See also https://www.python-boilerplate.com/flask
 """
+import json
 import os
 
 from flask import Flask, jsonify, request
-from handlers import question_handler, fetch_user_information, handle_change_preferred_name, handle_change_legal_name
+from handlers import question_handler, fetch_user_information, handle_change_preferred_name, handle_change_legal_name, handle_fetch_person
 import langsmith_setup
+
 
 def create_app(config=None):
     app = Flask(__name__)
@@ -56,7 +58,7 @@ def create_app(config=None):
                 return {'error': "Empty name object - {}"}, 400
 
         try:
-         to_return = handle_change_preferred_name(req['wid'], req['name'])
+            to_return = handle_change_preferred_name(req['wid'], req['name'])
         except Exception as e:
             return {'error': str(e)}, 500
 
@@ -80,10 +82,26 @@ def create_app(config=None):
 
         return jsonify(str(to_return)), 200
 
+    @app.route("/fetch_worker_<field>", methods=['GET'])
+    def get_worker(field):
+        """Expects a new name, wid and base64 encoded file."""
+        supported = ['legal_name', 'preferred_name']
+        if field not in supported:
+            return {"error": f"Currently only supports [{', '.join(supported)}]"}, 400
+
+        req = request.args.to_dict()
+        wid = req['wid']
+        worker_info = fetch_user_information(wid=wid)
+
+        if worker_info['status'] == 'fail':
+            return jsonify(worker_info), 200
+        person_id = worker_info['person']['id']
+
+        return_data = handle_fetch_person(person_id=person_id, object=field)
+
+        return jsonify(return_data), 200
+
     return app
-
-
-
 
 
 if __name__ == "__main__":

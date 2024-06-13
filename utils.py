@@ -32,6 +32,8 @@ def beautify_dict(any_dict):
         ret_str += f"{k}: {v}\n"
     ret_str += '\n'
     return ret_str
+
+
 def beautify_list(any_list):
     ret_str = "```"
     for i in any_list:
@@ -58,7 +60,6 @@ def llamafy_assistant_chat(messages):
 
 
 def get_wd_auth_from_refresh_token():
-
     client_secret = getenv("CLIENT_SECRET_UNLIMITED")
     client_id = getenv("CLIENT_ID_UNLIMITED")
 
@@ -80,7 +81,6 @@ def get_wd_auth_from_refresh_token():
         'Authorization': f'Basic {auth_base64}'
     }
 
-
     # Perform the GET request with basic authentication
     response = requests.request("GET", url, data=payload, headers=headers)
 
@@ -94,9 +94,12 @@ def get_wd_auth_from_refresh_token():
         raise Exception("Bad request")
 
 
+def to_camel_case(snake_str):
+    return "".join(x.capitalize() for x in snake_str.lower().split("_"))
 
 
-
-
-
-
+def to_lower_camel_case(snake_str):
+    # We capitalize the first letter of each component except the first one
+    # with the 'capitalize' method and join them together.
+    camel_string = to_camel_case(snake_str)
+    return snake_str[0].lower() + camel_string[1:]
