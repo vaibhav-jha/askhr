@@ -7,7 +7,9 @@ import json
 import os
 
 from flask import Flask, jsonify, request
-from handlers import question_handler, fetch_user_information, handle_change_preferred_name, handle_change_legal_name, handle_fetch_person
+from handlers import question_handler, fetch_user_information, handle_change_preferred_name, handle_change_legal_name, \
+    handle_fetch_person, handle_get_worker_object, handle_get_subordinate_list, handle_get_available_shifts, \
+    handle_shift_change
 import langsmith_setup
 
 
@@ -83,7 +85,7 @@ def create_app(config=None):
         return jsonify(str(to_return)), 200
 
     @app.route("/fetch_worker_<field>", methods=['GET'])
-    def get_worker(field):
+    def get_worker_name(field):
         """Expects a new name, wid and base64 encoded file."""
         supported = ['legal_name', 'preferred_name']
         if field not in supported:
@@ -100,6 +102,47 @@ def create_app(config=None):
         return_data = handle_fetch_person(person_id=person_id, field=field)
 
         return jsonify(return_data), 200
+
+    @app.route("/get_worker_details", methods=['GET'])
+    def get_worker_object():
+        req = request.args.to_dict()
+        wid = req['wid']
+
+        worker_info = handle_get_worker_object(wid=wid)
+
+        return worker_info
+
+    @app.route("/get_subordinate_list", methods=['GET'])
+    def get_subordinate_list():
+        req = request.args.to_dict()
+        wid = req['wid']
+        manager_list = handle_get_subordinate_list(wid=wid)
+
+        return manager_list
+
+    @app.route("/get_available_shifts", methods=['GET'])
+    def get_available_shifts():
+        req = request.args.to_dict()
+        wid = req['wid']
+        shifts_list = handle_get_available_shifts(wid=wid)
+
+        return shifts_list
+
+    @app.route("/shift_change", methods=['POST'])
+    def shift_change():
+        req = request.get_json()
+        wid = req['wid']
+        org_name = req['org']
+        shift_id = req['shift_id']
+        effective_date = req['effective_date']  # maybe date format
+
+        try:
+            response = handle_shift_change(wid=wid, org_name=org_name, shift_id=shift_id, effective_date=effective_date)
+
+        except Exception as e:
+            return {"status": "fail", "details": str(e)}, 400
+
+        return jsonify(str(response)), 200
 
     return app
 

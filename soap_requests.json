@@ -62,5 +62,43 @@
             "Last_Name": "Johnson"
           }
         }
-  }
+  },
+
+  "Change_Job_Request": {
+        "Business_Process_Parameters": {
+          "Auto_Complete": 0,
+          "Run_Now": 1
+        },
+        "Change_Job_Data": {
+          "Worker_Reference": {
+            "ID": {
+                "type": "WID",
+                "_value_1": "bc33aa3152ec42d4995f4791a106ed09"
+              }
+          },
+          "Effective_Date": "2024-06-01",
+          "Change_Job_Detail_Data": {
+            "Reason_Reference": {
+              "ID": {
+                "type": "Change_Job_Subcategory_ID",
+                "_value_1": "CHANGE_JOB_SUBCATEGORY-6-16"
+              }
+            },
+            "Supervisory_Organization_Reference": {
+              "ID": {
+                "type": "Organization_Reference_ID",
+                "_value_1": "SUPERVISORY_ORGANIZATION-16-224"
+              }
+            },
+            "Job_Details_Data": {
+              "Work_Shift_Reference": {
+                "ID": {
+                  "type": "WID",
+                  "_value_1": "1973f726468101401021d8e44127f807"
+                }
+              }
+            }
+          }
+        }
+      }
 }
