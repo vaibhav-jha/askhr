@@ -157,10 +157,10 @@ def handle_change_legal_name(wid, to_name, additional_data):
     return response
 
 
-def handle_fetch_person(person_id, object):
+def handle_fetch_person(person_id, field):
     wd_tenant_url = getenv('WORKDAY_TENANT_URL')
     wd_tenant_id = getenv('WORKDAY_TENANT_ID')
-    wd_url = os.path.join(wd_tenant_url, 'person/v4/', wd_tenant_id, 'people', person_id, to_lower_camel_case(object))
+    wd_url = os.path.join(wd_tenant_url, 'person/v4/', wd_tenant_id, 'people', person_id, to_lower_camel_case(field))
 
     bearer_token = _get_bearer_token()
 

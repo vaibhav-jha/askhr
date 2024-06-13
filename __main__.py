@@ -97,7 +97,7 @@ def create_app(config=None):
             return jsonify(worker_info), 200
         person_id = worker_info['person']['id']
 
-        return_data = handle_fetch_person(person_id=person_id, object=field)
+        return_data = handle_fetch_person(person_id=person_id, field=field)
 
         return jsonify(return_data), 200
 
