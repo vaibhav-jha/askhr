@@ -171,9 +171,9 @@ def handle_fetch_person(person_id, object):
         return {"status": "fail", "message": str(e)}
 
     details_return = {
-        'first_name': resp_json['data'][0]['first'],
-        'last_name': resp_json['data'][0]['primary'],
-        'middle_name': resp_json['data'][0]['middle'],
+        'first_name': resp_json['data'][0].get('first') or '',
+        'last_name': resp_json['data'][0].get('primary') or '',
+        'middle_name': resp_json['data'][0].get('middle') or '',
     }
 
     return details_return
