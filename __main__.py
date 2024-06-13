@@ -73,6 +73,11 @@ def create_app(config=None):
         """Expects a new name, wid and base64 encoded file."""
         req = request.get_json()
 
+        bearer_token = request.headers.get('Authorization')
+        bearer_token = bearer_token.split(' ')[-1] if bearer_token else ''
+        if bearer_token != 'YnVkaW1hbg==':
+            return {"error": "Unauthorized"}, 401
+
         if 'name' not in req:
             return {'error': "Missing name object"}, 400
         else:
