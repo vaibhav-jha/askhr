@@ -148,7 +148,7 @@ def create_app(config=None):
         effective_date = req['effective_date']  # maybe date format
 
         try:
-            response = handle_shift_change(wid=wid, org_name=org_name, shift_id=shift_id, effective_date=effective_date)
+            response = handle_shift_change(wid=wid, new_manager_id=org_name, shift_id=shift_id, effective_date=effective_date)
 
         except Exception as e:
             return {"status": "fail", "details": str(e)}, 400
