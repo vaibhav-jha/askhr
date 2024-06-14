@@ -55,35 +55,36 @@ def _get_bearer_token(token=None):
 
     return bearer_token
 
+from Workday import Workday
 def handle_get_subordinate_list(wid):
-    worker_object = handle_get_worker_object(wid)
-    supervisory_id = worker_object["primaryJob"]["supervisoryOrganization"]["id"]
-
-    bearer_token = _get_bearer_token()
-    wd_tenant_url = getenv('WORKDAY_TENANT_URL')
-    wd_tenant_id = getenv('WORKDAY_TENANT_ID')
-    url = os.path.join(wd_tenant_url, 'staffing/v6/', wd_tenant_id, 'supervisoryOrganizations', supervisory_id, 'orgChart')
-
+    ''' Fetches eligible managers '''
     try:
-        resp = requests.get(url, auth=BearerAuth(bearer_token))
-        resp_json = resp.json()
+        wd = Workday()
+        worker_response = wd.get_worker(wid)
 
-        subordinate_list = resp_json["data"][0]["subordinates"]
+        worker = worker_response[0]
 
-        ret_list = []
+        # Capture
+        supervisory_id = worker["primaryJob"]["supervisoryOrganization"]["id"]
+        country = worker["primaryJob"]["location"]["country"]["ISO_3166-1_Alpha-3_Code"]
 
-        for subordinate in subordinate_list:
-            ret_list.append({
-                "org": subordinate["Organization_Reference_ID"],
-                "name": subordinate["managers"][0]["descriptor"]
-            })
+        orgs_response = wd.get_org_chart(supervisory_id)
+        orgs = orgs_response[0]['data'][0]['subordinates']
+        filtered_orgs = []
+        for org in orgs:
+            manager_name = org["managers"][0]["descriptor"]
+            manager_wid = org["managers"][0]["id"]
 
+            manager_worker = wd.get_worker(manager_wid)[0]
+            manager_country = manager_worker["primaryJob"]["location"]["country"]["ISO_3166-1_Alpha-3_Code"]
+
+            if manager_country == country:
+                filtered_orgs.append(dict(name=manager_name, org=manager_wid))
     except Exception as e:
         return {"status": "fail", "message": str(e)}
 
+    return filtered_orgs
 
-
-    return ret_list
 
 def handle_get_available_shifts(wid):
     worker_object = handle_get_worker_object(wid)
@@ -181,79 +182,82 @@ def _get_person_by_wid(wid, field):
     return person
 
 
-def handle_change_preferred_name(wid, to_name):
-    from zeep import Client
-    from zeep.wsse.username import UsernameToken
-
-    # GET CURRENT NAME OBJECT
-    try:
-        person = _get_person_by_wid(wid=wid, field="preferred_name")
-        fn, mn, ln = person['first_name'], person["middle_name"], person['last_name']
-    except Exception as e:
-        print(e)
-        fn, mn, ln = "", "", ""
-
-    request_body = json.loads(open('soap_requests.json', 'r').read())
-    request_body['Change_Preferred_Name']['Change_Preferred_Name_Data']['Person_Reference']['ID']['_value_1'] = wid
-
-    fn, mn, ln = to_name.get('first_name') or fn, to_name.get('middle_name') or mn, to_name.get('last_name') or ln
-
-    request_body['Change_Preferred_Name']['Change_Preferred_Name_Data']['Name_Data']['First_Name'] = fn
-    request_body['Change_Preferred_Name']['Change_Preferred_Name_Data']['Name_Data']['Middle_Name'] = mn
-    request_body['Change_Preferred_Name']['Change_Preferred_Name_Data']['Name_Data']['Last_Name'] = ln
-
-    un, pw = getenv('WORKDAY_ADMIN_USERNAME'), getenv('WORKDAY_ADMIN_PASSWORD')
-    wsdl_url = "https://wd2-impl-services1.workday.com/ccx/service/ibmsrv_dpt1/Human_Resources/v42.1?wsdl"
-
-    client = Client(wsdl_url, wsse=UsernameToken(un, pw))
-
-    response = client.service.Change_Preferred_Name(**request_body["Change_Preferred_Name"])
-
-    return response
 
 
-def handle_change_legal_name(wid, to_name, additional_data):
-    from zeep import Client
-    from zeep.wsse.username import UsernameToken
 
-    # GET CURRENT NAME OBJECT
-    try:
-        person = _get_person_by_wid(wid=wid, field="legal_name")
-        fn, mn, ln = person['first_name'], person["middle_name"], person['last_name']
-    except Exception as e:
-        print(e)
-        fn, mn, ln = "", "", ""
+# def handle_change_preferred_name(wid, to_name):
+#     from zeep import Client
+#     from zeep.wsse.username import UsernameToken
+#
+#     # GET CURRENT NAME OBJECT
+#     try:
+#         person = _get_person_by_wid(wid=wid, field="preferred_name")
+#         fn, mn, ln = person['first_name'], person["middle_name"], person['last_name']
+#     except Exception as e:
+#         print(e)
+#         fn, mn, ln = "", "", ""
+#
+#     request_body = json.loads(open('soap_requests.json', 'r').read())
+#     request_body['Change_Preferred_Name']['Change_Preferred_Name_Data']['Person_Reference']['ID']['_value_1'] = wid
+#
+#     fn, mn, ln = to_name.get('first_name') or fn, to_name.get('middle_name') or mn, to_name.get('last_name') or ln
+#
+#     request_body['Change_Preferred_Name']['Change_Preferred_Name_Data']['Name_Data']['First_Name'] = fn
+#     request_body['Change_Preferred_Name']['Change_Preferred_Name_Data']['Name_Data']['Middle_Name'] = mn
+#     request_body['Change_Preferred_Name']['Change_Preferred_Name_Data']['Name_Data']['Last_Name'] = ln
+#
+#     un, pw = getenv('WORKDAY_ADMIN_USERNAME'), getenv('WORKDAY_ADMIN_PASSWORD')
+#     wsdl_url = "https://wd2-impl-services1.workday.com/ccx/service/ibmsrv_dpt1/Human_Resources/v42.1?wsdl"
+#
+#     client = Client(wsdl_url, wsse=UsernameToken(un, pw))
+#
+#     response = client.service.Change_Preferred_Name(**request_body["Change_Preferred_Name"])
+#
+#     return response
 
-    if type(to_name) == str:
-        fn, ln = to_name.split(' ')[0] or fn, to_name.split(' ')[-1] or ln
-        mn = to_name.split(' ')[1] if len(to_name.split(' ') == 3) else '' or mn
-    else:
-        fn, mn, ln = to_name.get('first_name') or fn, to_name.get('middle_name') or mn, to_name.get('last_name') or ln
 
-    request_body = json.loads(open('soap_requests.json', 'r').read())
-
-    request_body['Change_Legal_Name']['Change_Legal_Name_Data']['Person_Reference']['ID']['_value_1'] = wid
-    request_body['Change_Legal_Name']['Change_Legal_Name_Data']['Name_Data']['First_Name'] = fn
-    request_body['Change_Legal_Name']['Change_Legal_Name_Data']['Name_Data']['Middle_Name'] = mn
-    request_body['Change_Legal_Name']['Change_Legal_Name_Data']['Name_Data']['Last_Name'] = ln
-
-    request_body['Change_Legal_Name']['Business_Process_Parameters']['Business_Process_Attachment_Data'][
-        'File'] = additional_data.get('file')
-    request_body['Change_Legal_Name']['Business_Process_Parameters']['Business_Process_Attachment_Data'][
-        'File_Name'] = additional_data.get('file_name')
-    request_body['Change_Legal_Name']['Business_Process_Parameters']['Business_Process_Attachment_Data'][
-        'Event_Attachment_Description'] = additional_data.get('event_attachment_description')
-    request_body['Change_Legal_Name']['Business_Process_Parameters']['Business_Process_Attachment_Data'][
-        'Content_Type'] = additional_data.get('content_type')
-
-    un, pw = getenv('WORKDAY_ADMIN_USERNAME'), getenv('WORKDAY_ADMIN_PASSWORD')
-    wsdl_url = "https://wd2-impl-services1.workday.com/ccx/service/ibmsrv_dpt1/Human_Resources/v42.1?wsdl"
-
-    client = Client(wsdl_url, wsse=UsernameToken(un, pw))
-
-    response = client.service.Change_Legal_Name(**request_body["Change_Legal_Name"])
-
-    return response
+# def handle_change_legal_name(wid, to_name, additional_data):
+#     from zeep import Client
+#     from zeep.wsse.username import UsernameToken
+#
+#     # GET CURRENT NAME OBJECT
+#     try:
+#         person = _get_person_by_wid(wid=wid, field="legal_name")
+#         fn, mn, ln = person['first_name'], person["middle_name"], person['last_name']
+#     except Exception as e:
+#         print(e)
+#         fn, mn, ln = "", "", ""
+#
+#     if type(to_name) == str:
+#         fn, ln = to_name.split(' ')[0] or fn, to_name.split(' ')[-1] or ln
+#         mn = to_name.split(' ')[1] if len(to_name.split(' ') == 3) else '' or mn
+#     else:
+#         fn, mn, ln = to_name.get('first_name') or fn, to_name.get('middle_name') or mn, to_name.get('last_name') or ln
+#
+#     request_body = json.loads(open('soap_requests.json', 'r').read())
+#
+#     request_body['Change_Legal_Name']['Change_Legal_Name_Data']['Person_Reference']['ID']['_value_1'] = wid
+#     request_body['Change_Legal_Name']['Change_Legal_Name_Data']['Name_Data']['First_Name'] = fn
+#     request_body['Change_Legal_Name']['Change_Legal_Name_Data']['Name_Data']['Middle_Name'] = mn
+#     request_body['Change_Legal_Name']['Change_Legal_Name_Data']['Name_Data']['Last_Name'] = ln
+#
+#     request_body['Change_Legal_Name']['Business_Process_Parameters']['Business_Process_Attachment_Data'][
+#         'File'] = additional_data.get('file')
+#     request_body['Change_Legal_Name']['Business_Process_Parameters']['Business_Process_Attachment_Data'][
+#         'File_Name'] = additional_data.get('file_name')
+#     request_body['Change_Legal_Name']['Business_Process_Parameters']['Business_Process_Attachment_Data'][
+#         'Event_Attachment_Description'] = additional_data.get('event_attachment_description')
+#     request_body['Change_Legal_Name']['Business_Process_Parameters']['Business_Process_Attachment_Data'][
+#         'Content_Type'] = additional_data.get('content_type')
+#
+#     un, pw = getenv('WORKDAY_ADMIN_USERNAME'), getenv('WORKDAY_ADMIN_PASSWORD')
+#     wsdl_url = "https://wd2-impl-services1.workday.com/ccx/service/ibmsrv_dpt1/Human_Resources/v42.1?wsdl"
+#
+#     client = Client(wsdl_url, wsse=UsernameToken(un, pw))
+#
+#     response = client.service.Change_Legal_Name(**request_body["Change_Legal_Name"])
+#
+#     return response
 
 
 def handle_fetch_person(person_id, field):
@@ -278,11 +282,9 @@ def handle_fetch_person(person_id, field):
     return details_return
 
 
-
-
 ## ++++++++ SOAP REQUESTS
 
-def handle_change_preferred_name(wid, to_name):
+def handle_change_preferred_name(wid, to_name, force_all=False):
     from zeep import Client
     from zeep.wsse.username import UsernameToken
 
@@ -297,7 +299,10 @@ def handle_change_preferred_name(wid, to_name):
     request_body = json.loads(open('soap_requests.json', 'r').read())
     request_body['Change_Preferred_Name']['Change_Preferred_Name_Data']['Person_Reference']['ID']['_value_1'] = wid
 
-    fn, mn, ln = to_name.get('first_name') or fn, to_name.get('middle_name') or mn, to_name.get('last_name') or ln
+    if force_all:
+        fn, mn, ln = to_name.get('first_name'), to_name.get('middle_name'), to_name.get('last_name')
+    else:
+        fn, mn, ln = to_name.get('first_name') or fn, to_name.get('middle_name') or mn, to_name.get('last_name') or ln
 
     request_body['Change_Preferred_Name']['Change_Preferred_Name_Data']['Name_Data']['First_Name'] = fn
     request_body['Change_Preferred_Name']['Change_Preferred_Name_Data']['Name_Data']['Middle_Name'] = mn
@@ -313,7 +318,7 @@ def handle_change_preferred_name(wid, to_name):
     return response
 
 
-def handle_change_legal_name(wid, to_name, additional_data):
+def handle_change_legal_name(wid, to_name, additional_data, force_all=False):
     from zeep import Client
     from zeep.wsse.username import UsernameToken
 
@@ -329,7 +334,11 @@ def handle_change_legal_name(wid, to_name, additional_data):
         fn, ln = to_name.split(' ')[0] or fn, to_name.split(' ')[-1] or ln
         mn = to_name.split(' ')[1] if len(to_name.split(' ') == 3) else '' or mn
     else:
-        fn, mn, ln = to_name.get('first_name') or fn, to_name.get('middle_name') or mn, to_name.get('last_name') or ln
+        if force_all:
+            fn, mn, ln = to_name.get('first_name'), to_name.get('middle_name'), to_name.get('last_name')
+        else:
+            fn, mn, ln = to_name.get('first_name') or fn, to_name.get('middle_name') or mn, to_name.get(
+                'last_name') or ln
 
     request_body = json.loads(open('soap_requests.json', 'r').read())
 
@@ -356,24 +365,35 @@ def handle_change_legal_name(wid, to_name, additional_data):
 
     return response
 
-def handle_shift_change(wid, org_name, shift_id, effective_date):
-    from zeep import Client
-    from zeep.wsse.username import UsernameToken
 
-    request_body = json.loads(open('soap_requests.json', 'r').read())["Change_Job_Request"]
+def handle_shift_change(wid, new_manager_id, shift_id, effective_date):
+    ## FIND ORG ID FROM MANAGER ID
+    try:
+        wd = Workday()
 
-    request_body['Change_Job_Data']['Worker_Reference']['ID']['_value_1'] = wid
-    request_body['Change_Job_Data']['Effective_Date'] = effective_date
-    request_body['Change_Job_Data']['Change_Job_Detail_Data']['Supervisory_Organization_Reference']['ID']['_value_1'] = org_name
-    request_body['Change_Job_Data']['Change_Job_Detail_Data']['Job_Details_Data']['Work_Shift_Reference']['ID']['_value_1'] = shift_id
+        manager_worker = wd.get_worker(new_manager_id)[0]
 
+        # Find new manager's org id
+        manager_supervisory_org_id = manager_worker["primaryJob"]["supervisoryOrganization"]["id"]
+        orgs_under_supervisory_org = wd.get_org_chart(manager_supervisory_org_id)[0]
+        orgs = orgs_under_supervisory_org['data'][0]['subordinates']
+        filtered_orgs = [org for org in orgs if org['managers'][0]['id'] == new_manager_id]
+        manager_org_id = filtered_orgs[0]['id']
 
-    un, pw = getenv('WORKDAY_ADMIN_USERNAME'), getenv('WORKDAY_ADMIN_PASSWORD')
-    wsdl_url = "https://wd2-impl-services1.workday.com/ccx/service/ibmsrv_dpt1/Staffing/v43.0?wsdl"
+        # JOB change request
+        job_change_req_response = wd.post_job_change_request(wid=wid, org_id=manager_org_id, effective_date=effective_date)
+        job_change_id = job_change_req_response[0]['id']
 
-    client = Client(wsdl_url, wsse=UsernameToken(un, pw))
+        # Add new position True
+        wd.patch_job_position(job_change_id)
 
-    response = client.service.Change_Job(**request_body)
+        # Add shift
+        wd.patch_location(job_change_request_id=job_change_id, shift_id=shift_id)
 
-    return response
+        # Submit request
+        final_response = wd.post_job_change_submit(job_change_request_id=job_change_id)
 
+    except Exception as e:
+        return {"status": "fail", "message": str(e)}
+
+    return final_response[0]

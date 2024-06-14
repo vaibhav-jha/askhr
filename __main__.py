@@ -3,15 +3,16 @@ Documentation
 
 See also https://www.python-boilerplate.com/flask
 """
-import json
 import os
-from flask_cors import CORS, cross_origin
+from flask_cors import cross_origin
 
 from flask import Flask, jsonify, request
+
 from handlers import question_handler, fetch_user_information, handle_change_preferred_name, handle_change_legal_name, \
     handle_fetch_person, handle_get_worker_object, handle_get_subordinate_list, handle_get_available_shifts, \
     handle_shift_change
-import langsmith_setup
+
+from Workday import Workday
 
 
 def create_app(config=None):
@@ -125,6 +126,9 @@ def create_app(config=None):
         wid = req['wid']
         manager_list = handle_get_subordinate_list(wid=wid)
 
+        if type(manager_list) is not list:
+            return manager_list, 500
+
         return manager_list
 
     @app.route("/get_available_shifts", methods=['GET'])
@@ -151,10 +155,15 @@ def create_app(config=None):
 
         return jsonify(str(response)), 200
 
+    # @app.route("/reset_workday_names", methods=['POST'])
+    # def reset_workday_names():
+    #
+    #     return handle_reset_workday_names()
+    #
     return app
 
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
     app = create_app()
-    app.run(host="0.0.0.0", port=port)
+    # app.run(host="0.0.0.0", port=port)
