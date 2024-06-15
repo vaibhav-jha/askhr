@@ -128,7 +128,7 @@ def modify_chat_history(chat_history, remove_trigger="Do you have any other ques
 
             text_block['a'] = assistant_message
 
-            i += 3
+            i += additional_remove_count
         modified_chat_history.append(text_block)
     return  modified_chat_history
 
