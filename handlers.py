@@ -395,6 +395,6 @@ def handle_shift_change(wid, new_manager_id, shift_id, effective_date):
         final_response = wd.post_job_change_submit(job_change_request_id=job_change_id)
 
     except Exception as e:
-        return {"status": "fail", "message": str(e)}
+        raise Exception(f"message: {str(e)}")
 
     return final_response[0]
