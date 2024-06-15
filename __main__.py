@@ -157,6 +157,8 @@ def create_app(config=None):
         try:
             response = handle_shift_change(wid=wid, new_manager_id=org_name, shift_id=shift_id, effective_date=effective_date)
 
+        except ValueError as e:
+            return {"status": "fail", "details": str(e)}, 400
         except Exception as e:
             return {"status": "fail", "details": str(e)}, 500
 

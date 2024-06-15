@@ -383,6 +383,15 @@ def handle_shift_change(wid, new_manager_id, shift_id, effective_date):
         # JOB change request
         job_change_req_response = wd.post_job_change_request(wid=wid, org_id=manager_org_id,
                                                              effective_date=effective_date)
+        job_change_status = job_change_req_response[1]
+
+        if job_change_status > 399 and job_change_status < 500:
+            response_json = job_change_req_response[0]
+            message = response_json.get('errors')[0]
+
+            raise ValueError(message)
+
+
         job_change_id = job_change_req_response[0]['id']
 
         # Add new position True
@@ -395,6 +404,6 @@ def handle_shift_change(wid, new_manager_id, shift_id, effective_date):
         final_response = wd.post_job_change_submit(job_change_request_id=job_change_id)
 
     except Exception as e:
-        raise Exception(f"message: {str(e)}")
+        raise e
 
     return final_response[0]
