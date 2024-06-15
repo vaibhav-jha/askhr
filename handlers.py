@@ -2,7 +2,7 @@ import json
 
 from discovery import Discovery
 from utils import beautify_discovery_results, beautify_dict, llamafy_assistant_chat, get_wd_auth_from_refresh_token, \
-    to_lower_camel_case
+    to_lower_camel_case, modify_chat_history
 from prompts import prompt_template
 from watsonx_ai import llama
 import requests
@@ -28,7 +28,10 @@ def question_handler(question, metadata=None):
     if 'user_details' in metadata:
         user_details = beautify_dict(metadata['user_details'])
     if 'chat_history' in metadata:
-        chat_history = llamafy_assistant_chat(metadata['chat_history'])
+        chat_history = metadata['chat_history']
+        chat_history = modify_chat_history(chat_history)
+        chat_history = llamafy_assistant_chat(chat_history)
+
 
     additional_info = f"Today's date is: {date.today().strftime('%B %d, %Y')}"
 

@@ -103,3 +103,37 @@ def to_lower_camel_case(snake_str):
     # with the 'capitalize' method and join them together.
     camel_string = to_camel_case(snake_str)
     return snake_str[0].lower() + camel_string[1:]
+
+
+def modify_chat_history(chat_history, remove_trigger="Do you have any other question related to the leave policy", additional_remove_count=3):
+
+    modified_chat_history = []
+
+    i = 0
+    total_chats = len(chat_history)
+
+    while i < total_chats:
+        text_block = chat_history[i]
+        i += 1
+
+        if "u" in text_block.keys():
+            modified_chat_history.append(text_block)
+            continue
+
+        assistant_message = text_block['a']
+
+        if remove_trigger in assistant_message:
+            position = assistant_message.find(remove_trigger)
+            assistant_message = assistant_message[:position-1]
+
+            text_block['a'] = assistant_message
+
+            i += 3
+        modified_chat_history.append(text_block)
+    return  modified_chat_history
+
+
+
+
+
+
