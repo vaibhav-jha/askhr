@@ -55,7 +55,10 @@ def _get_bearer_token(token=None):
 
     return bearer_token
 
+
 from Workday import Workday
+
+
 def handle_get_subordinate_list(wid):
     ''' Fetches eligible managers '''
     try:
@@ -180,9 +183,6 @@ def _get_person_by_wid(wid, field):
         raise Exception(f"Couldnt find person object for worker {wid} ")
 
     return person
-
-
-
 
 
 # def handle_change_preferred_name(wid, to_name):
@@ -381,7 +381,8 @@ def handle_shift_change(wid, new_manager_id, shift_id, effective_date):
         manager_org_id = filtered_orgs[0]['id']
 
         # JOB change request
-        job_change_req_response = wd.post_job_change_request(wid=wid, org_id=manager_org_id, effective_date=effective_date)
+        job_change_req_response = wd.post_job_change_request(wid=wid, org_id=manager_org_id,
+                                                             effective_date=effective_date)
         job_change_id = job_change_req_response[0]['id']
 
         # Add new position True

@@ -1,4 +1,4 @@
-from handlers import get_wd_auth_from_refresh_token
+from utils import get_wd_auth_from_refresh_token
 from os import getenv
 import os
 import requests
