@@ -128,6 +128,8 @@ def create_app(config=None):
 
         if type(manager_list) is not list:
             return manager_list, 500
+        elif len(manager_list) == 0:
+            return {"error": "You do not have permissions to perform this action"}, 400
 
         return manager_list
 
@@ -136,6 +138,11 @@ def create_app(config=None):
         req = request.args.to_dict()
         wid = req['wid']
         shifts_list = handle_get_available_shifts(wid=wid)
+
+        if type(shifts_list) is not list:
+            return shifts_list, 500
+        elif len(shifts_list) == 0:
+            return {"error": "There are no shifts to choose from in your employee's location"}, 400
 
         return shifts_list
 
