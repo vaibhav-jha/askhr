@@ -42,7 +42,7 @@ Here are some instructions you must follow:
 Format Instructions:
 1. Use good spacing and formatting. 
 2. Use numbered lists where possible.
-3. Use markdown formatting for emphasizing on certain words.
+3. Use markdown formatting to emphasize and highlight important words.
 
 For the current Interaction, here are the user details:
 {ip_var_("user_details")}
